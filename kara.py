@@ -1,12 +1,15 @@
-"""Kara Core - CLI entrypoint for Kara-Core v0.1."""
-from typing import Optional
-import os
+"""Kara Core - main CLI entry point."""
+
+from __future__ import annotations
+
 from config.loader import load_config
 from core.assistant import KaraAssistant, MissingAPIKeyError
+from core.engine import KaraEngine
 
 
 def main() -> None:
-    """Start the Kara CLI loop."""
+    """Start the Kara CLI."""
+
     config = load_config()
     name = config.assistant_name or "Kara"
 
@@ -16,38 +19,41 @@ def main() -> None:
 
     try:
         assistant = KaraAssistant(model=config.model)
-    except MissingAPIKeyError as e:
-        print(f"Kara: {e}")
-        print("Kara: Please set OPENAI_API_KEY in the environment and restart.")
+        engine = KaraEngine(assistant=assistant)
+    except MissingAPIKeyError as exc:
+        print(f"{name}: {exc}")
+        print(
+            f"{name}: Please set OPENAI_API_KEY "
+            "in the environment and restart."
+        )
         return
 
     while True:
         try:
             command = input("You: ")
         except (EOFError, KeyboardInterrupt):
-            print("\nKara: Shutting down safely.")
+            print(f"\n{name}: Shutting down safely.")
             break
 
-        cmd = command.strip()
-        if not cmd:
+        command = command.strip()
+
+        if not command:
             continue
 
-        if cmd.lower() in {"exit", "quit", "shutdown"}:
-            print("Kara: Shutting down safely.")
+        if command.lower() in {"exit", "quit", "shutdown"}:
+            print(f"{name}: Shutting down safely.")
             break
 
-        if cmd.lower() == "reset":
+        if command.lower() == "reset":
             assistant.reset()
-            print("Kara: Conversation state cleared.")
+            print(f"{name}: Conversation state cleared.")
             continue
 
         try:
-            reply = assistant.send_message(cmd)
-        except Exception as e:
-            print(f"Kara: An error occurred while contacting the AI: {e}")
-            reply = "(error) I could not process that request."
-
-        print(f"Kara: {reply}")
+            result = engine.process(command)
+            print(f"{name}: {result.text}")
+        except Exception as exc:
+            print(f"{name}: An error occurred: {exc}")
 
 
 if __name__ == "__main__":
