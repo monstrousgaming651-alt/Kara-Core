@@ -1,4 +1,4 @@
-"""Kara Core - first runnable assistant shell (refactored CLI)."""
+"""Kara Core - CLI entrypoint for Kara-Core v0.1."""
 from typing import Optional
 import os
 from config.loader import load_config
@@ -6,10 +6,7 @@ from core.assistant import KaraAssistant, MissingAPIKeyError
 
 
 def main() -> None:
-    """Start the Kara CLI loop.
-
-    Runs in interactive mode, accepts commands until exit/quit/shutdown.
-    """
+    """Start the Kara CLI loop."""
     config = load_config()
     name = config.assistant_name or "Kara"
 
@@ -18,14 +15,13 @@ def main() -> None:
     print(f"{name}: Awaiting your command. Type 'exit' to shut down.")
 
     try:
-        assistant = KaraAssistant(model=config.model, allow_missing_api_key=True)
-    except MissingAPIKeyError:
-        # Should not happen because allow_missing_api_key=True, but be defensive
-        print("Kara: Missing OPENAI_API_KEY and offline mode disabled. Running in local echo mode.")
-        assistant = KaraAssistant(model=config.model, allow_missing_api_key=True)
+        assistant = KaraAssistant(model=config.model)
+    except MissingAPIKeyError as e:
+        print(f"Kara: {e}")
+        print("Kara: Please set OPENAI_API_KEY in the environment and restart.")
+        return
 
-    running = True
-    while running:
+    while True:
         try:
             command = input("You: ")
         except (EOFError, KeyboardInterrupt):
@@ -45,12 +41,11 @@ def main() -> None:
             print("Kara: Conversation state cleared.")
             continue
 
-        # Send to assistant and print reply. Handle API errors gracefully.
         try:
             reply = assistant.send_message(cmd)
         except Exception as e:
             print(f"Kara: An error occurred while contacting the AI: {e}")
-            reply = f"(error) I could not process that: {cmd}"
+            reply = "(error) I could not process that request."
 
         print(f"Kara: {reply}")
 
