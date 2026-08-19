@@ -43,6 +43,7 @@ class KaraRouter:
         "forget that",
         "what do you remember",
         "what you remember",
+        "what is ",
     )
 
     SYSTEM_KEYWORDS = (
