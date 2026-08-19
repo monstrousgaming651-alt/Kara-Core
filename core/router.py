@@ -65,6 +65,12 @@ class KaraRouter:
         "delete a file",
         "move a file",
         "copy a file",
+        "what time is it",
+        "what's the time",
+        "current time",
+        "what date is it",
+        "what's the date",
+        "today's date",
     )
 
     def route(self, text: str) -> Route:
