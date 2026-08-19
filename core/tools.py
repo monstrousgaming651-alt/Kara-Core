@@ -53,6 +53,25 @@ class KaraTools:
                 message=f"Tool '{name}' failed: {exc}",
             )
 
+    def match_tool(self, text: str) -> str | None:
+        """Return the approved tool name for a given request text, or None.
+
+        This keeps the mapping/heuristics for selecting a tool centralized
+        in the KaraTools registry so KaraEngine doesn't need tool-specific
+        branching logic.
+        """
+
+        normalized = text.strip().lower()
+
+        # Mirror the same heuristics used previously in KaraEngine.
+        if "time" in normalized:
+            return "get_time"
+
+        if "date" in normalized or "today" in normalized:
+            return "get_date"
+
+        return None
+
     @staticmethod
     def get_time() -> ToolResult:
         """Return the current local time."""
