@@ -1,0 +1,7 @@
+{
+  "assistant_name": "Kara",
+  "voice_enabled": false,
+  "interface_enabled": false,
+  "tools_enabled": false,
+  "model": "placeholder"
+}
