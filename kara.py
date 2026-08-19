@@ -1,61 +1,59 @@
-"""Kara Core - first runnable assistant shell."""
+"""Kara Core - first runnable assistant shell (refactored CLI)."""
+from typing import Optional
+import os
+from config.loader import load_config
+from core.assistant import KaraAssistant, MissingAPIKeyError
 
-from datetime import datetime
 
+def main() -> None:
+    """Start the Kara CLI loop.
 
-class Kara:
-    """Minimal foundation for the Kara personal AI."""
+    Runs in interactive mode, accepts commands until exit/quit/shutdown.
+    """
+    config = load_config()
+    name = config.assistant_name or "Kara"
 
-    def __init__(self, name: str = "Kara") -> None:
-        self.name = name
-        self.running = True
+    print(f"{name}: Online.")
+    print(f"{name}: Core initialized.")
+    print(f"{name}: Awaiting your command. Type 'exit' to shut down.")
 
-    def greet(self) -> None:
-        print(f"{self.name}: Online.")
-        print(
-            f"{self.name}: Core initialized at "
-            f"{datetime.now():%Y-%m-%d %H:%M:%S}."
-        )
-        print(
-            f"{self.name}: Awaiting your command. "
-            "Type 'exit' to shut down."
-        )
+    try:
+        assistant = KaraAssistant(model=config.model, allow_missing_api_key=True)
+    except MissingAPIKeyError:
+        # Should not happen because allow_missing_api_key=True, but be defensive
+        print("Kara: Missing OPENAI_API_KEY and offline mode disabled. Running in local echo mode.")
+        assistant = KaraAssistant(model=config.model, allow_missing_api_key=True)
 
-    def respond(self, command: str) -> str:
-        command = command.strip()
+    running = True
+    while running:
+        try:
+            command = input("You: ")
+        except (EOFError, KeyboardInterrupt):
+            print("\nKara: Shutting down safely.")
+            break
 
-        if not command:
-            return "I'm listening."
+        cmd = command.strip()
+        if not cmd:
+            continue
 
-        if command.lower() in {"hello", "hi", "hey"}:
-            return "Hello. Kara is online."
+        if cmd.lower() in {"exit", "quit", "shutdown"}:
+            print("Kara: Shutting down safely.")
+            break
 
-        if command.lower() in {"status", "system status"}:
-            return "Core status: ONLINE."
+        if cmd.lower() == "reset":
+            assistant.reset()
+            print("Kara: Conversation state cleared.")
+            continue
 
-        return f"I received: {command}"
+        # Send to assistant and print reply. Handle API errors gracefully.
+        try:
+            reply = assistant.send_message(cmd)
+        except Exception as e:
+            print(f"Kara: An error occurred while contacting the AI: {e}")
+            reply = f"(error) I could not process that: {cmd}"
 
-    def run(self) -> None:
-        self.greet()
-
-        while self.running:
-            try:
-                command = input("You: ")
-            except (EOFError, KeyboardInterrupt):
-                print("\nKara: Shutting down safely.")
-                break
-
-            if command.strip().lower() in {
-                "exit",
-                "quit",
-                "shutdown",
-            }:
-                self.running = False
-                print("Kara: Shutting down safely.")
-                continue
-
-            print(f"Kara: {self.respond(command)}")
+        print(f"Kara: {reply}")
 
 
 if __name__ == "__main__":
-    Kara().run()
+    main()
