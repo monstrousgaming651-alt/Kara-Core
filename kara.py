@@ -5,6 +5,7 @@ from __future__ import annotations
 from config.loader import load_config
 from core.assistant import KaraAssistant, MissingAPIKeyError
 from core.engine import KaraEngine
+from core.memory import Memory
 
 
 def main() -> None:
@@ -19,7 +20,8 @@ def main() -> None:
 
     try:
         assistant = KaraAssistant(model=config.model)
-        engine = KaraEngine(assistant=assistant)
+        memory = Memory()
+        engine = KaraEngine(assistant=assistant, memory=memory)
     except MissingAPIKeyError as exc:
         print(f"{name}: {exc}")
         print(
