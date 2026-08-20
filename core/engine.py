@@ -111,9 +111,10 @@ class KaraEngine:
     def _handle_memory_request(self, user_input: str, route: Route) -> EngineResponse:
         """Handle memory-related requests.
 
-        Supports storing values with "remember key=value" and retrieving with
-        "What is key?". If no memory backend is connected, preserve the
-        previous behavior and return a message indicating memory isn't connected.
+        Supports storing values with "remember key=value", retrieving with
+        "What is key?", and deleting with "forget key".
+        If no memory backend is connected, preserve the previous behavior and
+        return a message indicating memory isn't connected.
         """
 
         if self.memory is None:
@@ -174,11 +175,30 @@ class KaraEngine:
                     route=route,
                 )
 
+        # Handle delete: forget key
+        if lowered.startswith("forget "):
+            # Extract the key portion and strip punctuation
+            key = text[len("forget "):].strip().rstrip("? .!")
+
+            if key:
+                deleted = self.memory.delete(key)
+
+                if deleted:
+                    return EngineResponse(
+                        text=f"Forgot '{key}'.",
+                        route=route,
+                    )
+
+                return EngineResponse(
+                    text=f"I don't have any memory of '{key}'.",
+                    route=route,
+                )
+
         # Default fallback for other memory commands
         return EngineResponse(
             text=(
                 "Memory command received but I couldn't process it. "
-                "Try: remember key=value or What is key?"
+                "Try: remember key=value, What is key?, or forget key"
             ),
             route=route,
         )
