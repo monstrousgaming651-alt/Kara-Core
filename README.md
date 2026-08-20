@@ -1,2 +1,5 @@
 # Kara-Core
 PERSONAL AI
+
+
+
