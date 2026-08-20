@@ -39,11 +39,10 @@ class KaraRouter:
         "memorize",
         "don't forget",
         "do not forget",
-        "forget this",
-        "forget that",
+        "forget",
+        "what is ",
         "what do you remember",
         "what you remember",
-        "what is ",
     )
 
     SYSTEM_KEYWORDS = (
