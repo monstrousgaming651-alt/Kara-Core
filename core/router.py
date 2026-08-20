@@ -71,6 +71,8 @@ class KaraRouter:
         "what date is it",
         "what's the date",
         "today's date",
+        "calculate",
+        "compute",
     )
 
     def route(self, text: str) -> Route:
